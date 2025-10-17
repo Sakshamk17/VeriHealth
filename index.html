@@ -175,7 +175,6 @@
       </div>
     </div>
 
-  
     <!-- Splash Screen -->
     <div
       id="splash-screen"
@@ -205,12 +204,13 @@
             class="text-5xl font-extrabold text-white translate-y-[-50px] opacity-0"
             id="splash-title"
           >
-            <span class="text-neon-green" id="typing-verihealth"></span><span class="text-white" id="typing-health"></span>
+            <span class="text-neon-green" id="typing-verihealth"></span
+            ><span class="text-white" id="typing-health"></span>
           </h1>
           <p
             class="text-lg text-neon-blue mt-3 mb-6 italic translate-y-[-50px] opacity-0"
             id="splash-tagline"
-            style="min-height: 1.5em;"
+            style="min-height: 1.5em"
           >
             <span id="typing-tagline"></span>
           </p>
@@ -344,7 +344,7 @@
       const typeText = async (element, text, speed = 50) => {
         for (let i = 0; i < text.length; i++) {
           element.textContent += text[i];
-          await new Promise(resolve => setTimeout(resolve, speed));
+          await new Promise((resolve) => setTimeout(resolve, speed));
         }
       };
 
@@ -364,7 +364,11 @@
         });
 
         // Type "Veri"
-        await typeText(document.getElementById("typing-verihealth"), "Veri", 15);
+        await typeText(
+          document.getElementById("typing-verihealth"),
+          "Veri",
+          15
+        );
         // Type "Health"
         await typeText(document.getElementById("typing-health"), "Health", 15);
 
@@ -477,6 +481,25 @@
             },
           ],
         },
+        "vitamin c prevents cold": {
+          confidenceLevel: 45,
+          summary:
+            "Claim Assessment: PARTIALLY TRUE\n\n45% confidence: Regular vitamin C intake may slightly reduce the duration or severity of colds in some individuals, but it *does not reliably prevent the onset* of the common cold for most people. Evidence is mixed and effects depend on dosage, frequency, and individual health.\n\nScientific Context:\nVitamin C supports immune function and may help under stress or extreme physical activity, but it is not a guaranteed preventive measure.\n\nVerification:\nMajor studies and systematic reviews conclude that routine supplementation has limited effect on cold prevention, though it may offer mild benefits for high-risk groups.",
+          citationSources: [
+            {
+              title: "National Institutes of Health - Vitamin C Fact Sheet",
+              uri: "https://ods.od.nih.gov/factsheets/VitaminC-Consumer/",
+            },
+            {
+              title: "Cochrane Review - Vitamin C for Preventing and Treating the Common Cold",
+              uri: "https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD000980.pub4/full",
+            },
+            {
+              title: "Harvard Health - Vitamin C and Immune Health",
+              uri: "https://www.health.harvard.edu/staying-healthy/vitamin-c-and-the-common-cold",
+            },
+          ],
+        },
       };
 
       let messages = [];
@@ -500,6 +523,7 @@
         renderMessages();
       };
 
+      //create el
       const createMessageElement = (msg) => {
         const div = document.createElement("div");
         const isUser = msg.sender === "user";
@@ -520,49 +544,49 @@
         if (msg.structuredData) {
           const data = msg.structuredData;
           const conf = data.confidenceLevel;
-          const confColor =
-            conf >= 90 ? "#00ffb3" : conf >= 50 ? "#ffff00" : "#ff4444";
+
+          // ✅ New rule: if confidence > 70 → red, else green
+          const confColor = conf > 70 ? "#ff4444" : "#00ffb3";
           const confText =
-            conf >= 90 ? "HIGH" : conf >= 50 ? "MODERATE" : "LOW";
+            conf > 70
+              ? "LOW CONFIDENCE (⚠ Misleading/Fake)"
+              : "HIGH CONFIDENCE (✅ Reliable)";
 
-          let html = `<div style="margin-bottom: 0.75rem; font-weight: bold; color: ${confColor}">
-            Confidence: ${conf}% [${confText}]
-          </div>`;
+          let html = `<div style="margin-bottom:0.75rem;font-weight:bold;color:${confColor}">
+    Confidence: ${conf}% — ${confText}
+  </div>`;
 
-          html += `<div style="margin-bottom: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 0.25rem;">
-            <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-              <div style="height: 100%; width: ${conf}%; background: ${confColor}; transition: width 0.8s ease;"></div>
-            </div>
-          </div>`;
+          html += `<div style="margin-bottom:0.75rem;background:rgba(0,0,0,0.2);padding:0.5rem;border-radius:0.25rem;">
+    <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:${conf}%;background:${confColor};transition:width 0.8s ease;"></div>
+    </div>
+  </div>`;
 
-          const summaryHtml = data.summary
-            .replace(/\n\n/g, "<br><br>")
-            .replace(/\*(.?)\*/g, "<strong>$1</strong>")
-            .replace(/\n/g, "<br>");
-
-          html += `<div style="font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.75rem;">${summaryHtml}</div>`;
+          const summaryHtml = data.summary.replace(/\n/g, "<br>");
+          html += `<div style="font-size:0.9rem;line-height:1.4;margin-bottom:0.75rem;">${summaryHtml}</div>`;
 
           if (data.citationSources && data.citationSources.length > 0) {
-            html += `<div style="border-top: 1px solid rgba(0,255,179,0.3); padding-top: 0.5rem; margin-top: 0.5rem;">
-              <div style="font-size: 0.75rem; color: ${
-                isUser ? "#000" : "#aaa"
-              }; font-weight: bold;">Sources:</div>`;
+            html += `<div style="border-top:1px solid rgba(0,255,179,0.3);padding-top:0.5rem;margin-top:0.5rem;">
+        <div style="font-size:0.75rem;color:${
+          isUser ? "#000" : "#aaa"
+        };font-weight:bold;">Sources:</div>`;
             data.citationSources.forEach((src, i) => {
               const url = src.uri && src.uri.startsWith("http") ? src.uri : "#";
-              html += `<div style="font-size: 0.75rem; margin-top: 0.25rem;"><a href="${url}" target="_blank" style="color: ${
+              html += `<div style="font-size:0.75rem;margin-top:0.25rem;">
+          <a href="${url}" target="_blank" style="color:${
                 isUser ? "#000" : "#00ffb3"
-              };">${i + 1}. ${src.title}</a></div>`;
+              };">
+            ${i + 1}. ${src.title}
+          </a>
+        </div>`;
             });
             html += `</div>`;
           }
 
           bubble.innerHTML = html;
         } else {
-          const textHtml = msg.text
-            .replace(/\n\n/g, "<br><br>")
-            .replace(/\*(.?)\*/g, "<strong>$1</strong>")
-            .replace(/\n/g, "<br>");
-          bubble.innerHTML = `<div style="font-size: 0.95rem; line-height: 1.4;">${textHtml}</div>`;
+          const textHtml = msg.text.replace(/\n/g, "<br>");
+          bubble.innerHTML = `<div style="font-size:0.95rem;line-height:1.4;">${textHtml}</div>`;
         }
 
         const timeSpan = document.createElement("div");
@@ -583,23 +607,25 @@
 
         messages.forEach((msg, index) => {
           const msgEl = createMessageElement(msg);
-          
+
           // Only animate new messages (those not yet animated)
           if (!animatedMessageIndices.has(index)) {
             msgEl.classList.add("message-animated");
             animatedMessageIndices.add(index);
           }
-          
+
           messagesArea.appendChild(msgEl);
         });
 
         messagesArea.scrollTop = messagesArea.scrollHeight;
       };
 
+      const normalize = (text) => text.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+
       const findMockResponse = (text) => {
-        const lower = text.toLowerCase();
+        const lower = normalize(text);
         for (const [key, response] of Object.entries(mockResponses)) {
-          if (lower.includes(key)) return response;
+          if (lower.includes(normalize(key))) return response;
         }
         return null;
       };
@@ -627,7 +653,7 @@
           });
         } else {
           messages.push({
-            text: "I don't have a specific analysis for that claim yet. Try testing with: 'lemon water kills cancer', 'vaccines contain microchips', 'drinking water at night causes kidney disease', 'essential oils cure diabetes', or 'detox diets remove toxins'.",
+            text: "I don't have a specific analysis for that claim yet. Try testing with: 'lemon water kills cancer', 'vaccines contain microchips', 'drinking water at night causes kidney disease', 'essential oils cure diabetes', 'vitamin c prevents cold' or 'detox diets remove toxins'.",
             sender: "guider",
             timestamp: new Date(),
           });
